@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Splitting and joining, with no UI dependency. -->
+  <PropertyGroup>
+    <RootNamespace>SplitzNJoinz.Core</RootNamespace>
+  </PropertyGroup>
+</Project>

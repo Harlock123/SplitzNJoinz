@@ -1,0 +1,132 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SplitzNJoinz.ViewModels"
+        x:Class="SplitzNJoinz.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Splitz_n_Joinz"
+        Width="780" MinWidth="560"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+
+  <Window.Styles>
+    <Style Selector="Border.card">
+      <!-- (Translucent grey reads as a card on both the light and dark theme.) -->
+      <Setter Property="Background" Value="#18808080" />
+      <Setter Property="BorderBrush" Value="#40808080" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="20,16" />
+    </Style>
+    <Style Selector="TextBlock.heading">
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.note">
+      <Setter Property="Opacity" Value="0.75" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.error">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="TextBlock.warning">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+    </Style>
+    <Style Selector="Button.action">
+      <Setter Property="MinWidth" Value="120" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+  </Window.Styles>
+
+  <ScrollViewer>
+    <StackPanel Margin="20" Spacing="16">
+
+      <!-- ===== Split ===== -->
+      <Border Classes="card">
+        <StackPanel Spacing="8">
+          <TextBlock Classes="heading" Text="Splitz — cut a file into chunks" />
+
+          <Grid ColumnSpacing="12" RowSpacing="8" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Classes="label" Text="File to split" />
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SourcePath}" PlaceholderText="Path of the file to split" />
+            <Button Grid.Row="0" Grid.Column="2" Content="Browse…" Command="{Binding BrowseSourceCommand}" />
+
+            <TextBlock Grid.Row="1" Classes="label" Text="Maximum chunk size" />
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8">
+              <NumericUpDown Value="{Binding ChunkSize}" Minimum="0" Maximum="1000000" Increment="1"
+                             FormatString="0.##" Width="170" />
+              <ComboBox ItemsSource="{x:Static vm:MainWindowViewModel.Units}" SelectedItem="{Binding ChunkUnit}" Width="100" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="2" Classes="label" Text="Chunks go in" />
+            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding OutputFolder}" PlaceholderText="Folder for the chunk files" />
+            <Button Grid.Row="2" Grid.Column="2" Content="Browse…" Command="{Binding BrowseOutputFolderCommand}" />
+
+            <CheckBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" IsChecked="{Binding ReplaceExistingChunks}"
+                      Content="Replace chunks of this file already in that folder" />
+          </Grid>
+
+          <TextBlock Classes="note" Text="{Binding SplitSummary}" />
+          <TextBlock Classes="note" FontSize="12"
+                     Text="Chunks are named after the file with a number on the end: name.ext.001, name.ext.002, …" />
+
+          <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8,0,0">
+            <ProgressBar Grid.Column="0" Value="{Binding SplitPercent}" Minimum="0" Maximum="100"
+                         VerticalAlignment="Center" MinHeight="6" />
+            <Button Grid.Column="1" Classes="action accent" Margin="12,0,0,0" Content="Split"
+                    Command="{Binding SplitCommand}" />
+            <Button Grid.Column="2" Classes="action" Margin="8,0,0,0" Content="Cancel"
+                    Command="{Binding SplitCancelCommand}" IsVisible="{Binding SplitCommand.IsRunning}" />
+          </Grid>
+          <TextBlock Classes="note" Classes.error="{Binding SplitFailed}" Text="{Binding SplitStatus}"
+                     IsVisible="{Binding SplitStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </Border>
+
+      <!-- ===== Join ===== -->
+      <Border Classes="card">
+        <StackPanel Spacing="8">
+          <TextBlock Classes="heading" Text="Joinz — stitch the chunks back together" />
+
+          <Grid ColumnSpacing="12" RowSpacing="8" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Classes="label" Text="Any one chunk" />
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ChunkPath}" PlaceholderText="e.g. name.ext.001" />
+            <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Spacing="8">
+              <Button Content="Browse…" Command="{Binding BrowseChunkCommand}" />
+              <Button Content="Rescan" Command="{Binding RefreshChunksCommand}"
+                      ToolTip.Tip="Look again for the other chunks (e.g. after copying in a missing one)" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="1" Classes="label" Text="Save joined file as" />
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding JoinOutputPath}" PlaceholderText="Path of the rebuilt file" />
+            <Button Grid.Row="1" Grid.Column="2" Content="Browse…" Command="{Binding BrowseJoinOutputCommand}" />
+
+            <CheckBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" IsChecked="{Binding OverwriteJoinedFile}"
+                      Content="Overwrite that file if it already exists" />
+          </Grid>
+
+          <TextBlock Classes="note" Classes.error="{Binding JoinSummaryIsError}" Text="{Binding JoinSummary}" />
+          <TextBlock Classes="note warning" IsVisible="{Binding JoinOutputExists}"
+                     Text="A file with that name already exists. Tick “Overwrite” to replace it, or choose another name." />
+
+          <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8,0,0">
+            <ProgressBar Grid.Column="0" Value="{Binding JoinPercent}" Minimum="0" Maximum="100"
+                         VerticalAlignment="Center" MinHeight="6" />
+            <Button Grid.Column="1" Classes="action accent" Margin="12,0,0,0" Content="Join"
+                    Command="{Binding JoinCommand}" />
+            <Button Grid.Column="2" Classes="action" Margin="8,0,0,0" Content="Cancel"
+                    Command="{Binding JoinCancelCommand}" IsVisible="{Binding JoinCommand.IsRunning}" />
+          </Grid>
+          <TextBlock Classes="note" Classes.error="{Binding JoinFailed}" Text="{Binding JoinStatus}"
+                     IsVisible="{Binding JoinStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+</Window>
