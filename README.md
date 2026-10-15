@@ -38,6 +38,12 @@ dotnet publish src/SplitzNJoinz -c Release -r linux-x64   --self-contained
 
 (Also `win-arm64`, `osx-x64` and `linux-arm64`.)
 
+## Downloads
+
+Every push to `main` refreshes the **Latest build (main)** pre-release on the Releases page with a
+self-contained build for Windows (x64, x86, arm64), macOS (x64, arm64) and Linux (x64, arm64, arm, musl).
+Tagging `v*` (e.g. `v0.1.0`) makes a proper release.
+
 ## Layout
 
 | Project | |
@@ -46,3 +52,7 @@ dotnet publish src/SplitzNJoinz -c Release -r linux-x64   --self-contained
 | `src/SplitzNJoinz` | The Avalonia app (`Splitz_n_Joinz` executable) |
 | `tests/SplitzNJoinz.Tests` | Round trips and edge cases for the core |
 | `tests/SplitzNJoinz.UiTests` | The window and view model, headless |
+
+## License
+
+MIT; see [LICENSE](LICENSE).
